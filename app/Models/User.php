@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -63,5 +64,32 @@ class User extends Authenticatable
     public function getEmailAttribute(): ?string
     {
         return $this->correo;
+    }
+
+    public function reportes(): HasMany
+    {
+        return $this->hasMany(
+            Reporte::class,
+            'usuario_id_usuario',
+            'id_usuario'
+        );
+    }
+
+    public function inspecciones(): HasMany
+    {
+        return $this->hasMany(
+            Inspeccion::class,
+            'usuario_id_usuario',
+            'id_usuario'
+        );
+    }
+
+    public function ordenesTrabajo(): HasMany
+    {
+        return $this->hasMany(
+            OrdenTrabajo::class,
+            'usuario_id_usuario',
+            'id_usuario'
+        );
     }
 }
