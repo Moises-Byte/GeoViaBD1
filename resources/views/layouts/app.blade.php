@@ -3,10 +3,11 @@
 
     $navItems = [
         ['route' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'dashboard'],
+        ['route' => 'prioridades.index', 'label' => 'Prioridades', 'icon' => 'reports', 'roles' => ['AUTORIDAD', 'SUPERVISOR']],
         ['route' => 'reportes.index', 'label' => 'Reportes', 'icon' => 'reports'],
         ['route' => 'vias.index', 'label' => 'Vias', 'icon' => 'roads'],
         ['route' => 'inspecciones.index', 'label' => 'Inspecciones', 'icon' => 'inspection'],
-        ['route' => 'ordenes.index', 'label' => 'Ordenes', 'icon' => 'orders'],
+        ['route' => 'ordenes.index', 'label' => 'Órdenes', 'icon' => 'orders', 'roles' => ['AUTORIDAD', 'SUPERVISOR']],
         ['route' => 'cuadrillas.index', 'label' => 'Cuadrillas', 'icon' => 'crews'],
     ];
 @endphp
@@ -46,9 +47,10 @@
             </p>
 
             @foreach ($navItems as $item)
+                @continue(isset($item['roles']) && ! in_array(Auth::user()?->rol, $item['roles'], true))
                 @php
                     $exists = Route::has($item['route']);
-                    $isActive = $exists ? request()->routeIs($item['route']) : false;
+                    $isActive = $exists ? request()->routeIs(str_replace('.index', '.*', $item['route'])) : false;
                     $href = $exists ? route($item['route']) : '#';
                 @endphp
 
