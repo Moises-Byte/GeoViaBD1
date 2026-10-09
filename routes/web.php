@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EstadisticaController;
+use App\Http\Controllers\ExportacionController;
 use App\Http\Controllers\OrdenTrabajoController;
 use App\Http\Controllers\PrioridadController;
 use App\Http\Controllers\ProfileController;
@@ -16,6 +17,9 @@ Route::get('/dashboard', DashboardController::class)
     ->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/estadisticas/excel', [ExportacionController::class, 'excel'])
+        ->name('estadisticas.excel');
+
     Route::get('/estadisticas', [EstadisticaController::class, 'index'])
         ->name('estadisticas.index');
 
