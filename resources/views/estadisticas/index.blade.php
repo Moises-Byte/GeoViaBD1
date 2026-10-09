@@ -5,6 +5,7 @@
 @endphp
 
 @section('actions')
+    <a href="{{ route('estadisticas.excel') }}" class="gv-primary-button">Descargar Excel</a>
     <a href="{{ route('estadisticas.index') }}" class="gv-primary-button">Actualizar datos</a>
 @endsection
 
