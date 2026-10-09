@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EstadisticaController;
 use App\Http\Controllers\OrdenTrabajoController;
 use App\Http\Controllers\PrioridadController;
 use App\Http\Controllers\ProfileController;
@@ -15,8 +16,15 @@ Route::get('/dashboard', DashboardController::class)
     ->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/estadisticas', [EstadisticaController::class, 'index'])
+        ->name('estadisticas.index');
+
     Route::resource('ordenes', OrdenTrabajoController::class)
-        ->only(['index', 'create', 'store']);
+        ->parameters(['ordenes' => 'orden'])
+        ->only(['index', 'create', 'store', 'edit', 'update']);
+
+    Route::post('/ordenes/{orden}/finalizar', [OrdenTrabajoController::class, 'finalizar'])
+        ->name('ordenes.finalizar');
 
     Route::get('/prioridades', [PrioridadController::class, 'index'])
         ->name('prioridades.index');

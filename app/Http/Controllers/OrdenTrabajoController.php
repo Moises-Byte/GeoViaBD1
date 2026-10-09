@@ -116,4 +116,114 @@ class OrdenTrabajoController extends Controller
             'No tienes permiso para gestionar órdenes de trabajo.'
         );
     }
+
+    public function edit(Request $request, OrdenTrabajo $orden): View
+    {
+        $this->verificarResponsable($request, $orden);
+        $orden->load(['reporte.via', 'cuadrilla', 'supervisor']);
+
+        return view('ordenes.edit', compact('orden'));
+    }
+
+    public function update(Request $request, OrdenTrabajo $orden): RedirectResponse
+    {
+        $this->verificarResponsable($request, $orden);
+        $datos = $request->validate([
+            'avance' => ['required', 'integer', 'between:0,99'],
+            'observaciones' => ['nullable', 'string', 'max:500'],
+        ], [
+            'avance.required' => 'Indica el porcentaje de avance.',
+            'avance.integer' => 'El avance debe ser un número entero.',
+            'avance.between' => 'El avance debe estar entre 0 y 99. Usa Finalizar orden para registrar el 100%.',
+            'observaciones.max' => 'Las observaciones no pueden superar 500 caracteres.',
+        ]);
+
+        DB::transaction(function () use ($request, $orden, $datos) {
+            [$actual, $reporte] = $this->bloquearOrden($request, $orden);
+            if ((int) $datos['avance'] < $actual->avance) {
+                throw ValidationException::withMessages([
+                    'avance' => 'El avance no puede ser menor que el ya registrado.',
+                ]);
+            }
+
+            $actual->avance = (int) $datos['avance'];
+            $actual->estado = $actual->avance > 0 ? 'EN PROCESO' : 'PENDIENTE';
+            $actual->observaciones = $datos['observaciones'] ?? null;
+            $actual->save();
+
+            if ($actual->avance > 0) {
+                $reporte->estado = 'EN REPARACION';
+                $reporte->save();
+            }
+        });
+
+        return redirect()->route('ordenes.edit', $orden)->with('success', 'Avance guardado correctamente.');
+    }
+
+    public function finalizar(Request $request, OrdenTrabajo $orden): RedirectResponse
+    {
+        $this->verificarResponsable($request, $orden);
+        $datos = $request->validate([
+            'fecha_finalizacion' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'observaciones_finales' => ['nullable', 'string', 'max:500'],
+        ], [
+            'fecha_finalizacion.required' => 'Indica la fecha de finalización.',
+            'fecha_finalizacion.date_format' => 'La fecha de finalización no es válida.',
+            'fecha_finalizacion.before_or_equal' => 'La fecha de finalización no puede ser futura.',
+            'observaciones_finales.max' => 'Las observaciones no pueden superar 500 caracteres.',
+        ]);
+
+        DB::transaction(function () use ($request, $orden, $datos) {
+            [$actual, $reporte] = $this->bloquearOrden($request, $orden);
+            if ($datos['fecha_finalizacion'] < $actual->fecha_asignacion->format('Y-m-d')) {
+                throw ValidationException::withMessages([
+                    'fecha_finalizacion' => 'La finalización no puede ser anterior a la asignación.',
+                ]);
+            }
+
+            $actual->avance = 100;
+            $actual->estado = 'FINALIZADA';
+            $actual->fecha_finalizacion = $datos['fecha_finalizacion'];
+            $actual->observaciones = $datos['observaciones_finales'] ?? null;
+            $actual->save();
+
+            $reporte->estado = 'FINALIZADO';
+            $reporte->save();
+        });
+
+        return redirect()->route('ordenes.index')->with(
+            'success', "Orden #{$orden->id_orden} finalizada correctamente. El reporte relacionado también quedó finalizado."
+        );
+    }
+
+    private function verificarResponsable(Request $request, OrdenTrabajo $orden): void
+    {
+        $this->verificarAcceso($request);
+        abort_unless(
+            $request->user()->rol === 'AUTORIDAD'
+                || (int) $request->user()->id_usuario === (int) $orden->usuario_id_usuario,
+            403,
+            'Solo la autoridad o el supervisor asignado pueden actualizar esta orden.'
+        );
+    }
+
+    private function bloquearOrden(Request $request, OrdenTrabajo $orden): array
+    {
+        $actual = OrdenTrabajo::whereKey($orden->id_orden)->lockForUpdate()->get()->firstOrFail();
+        $this->verificarResponsable($request, $actual);
+        if ($actual->estado === 'FINALIZADA') {
+            throw ValidationException::withMessages([
+                'orden' => 'Esta orden ya está finalizada y no puede modificarse.',
+            ]);
+        }
+
+        $reporte = Reporte::whereKey($actual->reporte_id_reporte)->lockForUpdate()->get()->firstOrFail();
+        if (! in_array($reporte->estado, ['VALIDADO', 'EN REPARACION'], true)) {
+            throw ValidationException::withMessages([
+                'orden' => 'El estado del reporte no permite actualizar esta orden.',
+            ]);
+        }
+
+        return [$actual, $reporte];
+    }
 }

@@ -31,9 +31,11 @@
                             <th scope="col" class="gv-table-cell">Cuadrilla</th>
                             <th scope="col" class="gv-table-cell">Supervisor</th>
                             <th scope="col" class="gv-table-cell">Asignación</th>
+                            <th scope="col" class="gv-table-cell">Finalización</th>
                             <th scope="col" class="gv-table-cell">Estado</th>
                             <th scope="col" class="gv-table-cell">Avance</th>
                             <th scope="col" class="gv-table-cell">Observaciones</th>
+                            <th scope="col" class="gv-table-cell">Acciones</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -47,13 +49,23 @@
                                 <td class="gv-table-cell">{{ $orden->cuadrilla?->nombre ?? 'Sin cuadrilla' }}</td>
                                 <td class="gv-table-cell">{{ $orden->supervisor?->nombre ?? 'Sin supervisor' }}</td>
                                 <td class="gv-table-cell whitespace-nowrap">{{ $orden->fecha_asignacion?->format('d/m/Y') }}</td>
+                                <td class="gv-table-cell whitespace-nowrap">{{ $orden->fecha_finalizacion?->format('d/m/Y') ?? 'Pendiente' }}</td>
                                 <td class="gv-table-cell">{{ $orden->estado }}</td>
                                 <td class="gv-table-cell">{{ $orden->avance }}%</td>
                                 <td class="gv-table-cell max-w-xs break-words">{{ $orden->observaciones ?: 'Sin observaciones' }}</td>
+                                <td class="gv-table-cell">
+                                    @if (Auth::user()->rol === 'AUTORIDAD' || (int) Auth::user()->id_usuario === (int) $orden->usuario_id_usuario)
+                                        <a href="{{ route('ordenes.edit', $orden) }}" class="font-semibold text-emerald-700 underline whitespace-nowrap">
+                                            {{ $orden->estado === 'FINALIZADA' ? 'Ver cierre' : 'Actualizar avance' }}
+                                        </a>
+                                    @else
+                                        <span class="gv-muted-xs">Otro supervisor</span>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-5 py-8 text-center text-slate-500">
+                                <td colspan="10" class="px-5 py-8 text-center text-slate-500">
                                     Todavía no hay órdenes de trabajo. Pulsa “Nueva orden” para crear la primera.
                                 </td>
                             </tr>

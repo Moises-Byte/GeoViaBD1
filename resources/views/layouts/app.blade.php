@@ -4,6 +4,7 @@
     $navItems = [
         ['route' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'dashboard'],
         ['route' => 'prioridades.index', 'label' => 'Prioridades', 'icon' => 'reports', 'roles' => ['AUTORIDAD', 'SUPERVISOR']],
+        ['route' => 'estadisticas.index', 'label' => 'Estadísticas', 'icon' => 'dashboard', 'roles' => ['AUTORIDAD', 'SUPERVISOR']],
         ['route' => 'reportes.index', 'label' => 'Reportes', 'icon' => 'reports'],
         ['route' => 'vias.index', 'label' => 'Vias', 'icon' => 'roads'],
         ['route' => 'inspecciones.index', 'label' => 'Inspecciones', 'icon' => 'inspection'],
