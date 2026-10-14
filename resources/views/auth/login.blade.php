@@ -1,5 +1,6 @@
 <x-guest-layout>
     <h1 class="gv-auth-heading">Iniciar sesión</h1>
+    <p class="gv-login-subtitle">Gestión y seguimiento de nuestras vías</p>
 
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
