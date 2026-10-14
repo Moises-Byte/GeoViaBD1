@@ -6,10 +6,10 @@
         ['route' => 'prioridades.index', 'label' => 'Prioridades', 'icon' => 'reports', 'roles' => ['AUTORIDAD', 'SUPERVISOR']],
         ['route' => 'estadisticas.index', 'label' => 'Estadísticas', 'icon' => 'dashboard', 'roles' => ['AUTORIDAD', 'SUPERVISOR']],
         ['route' => 'reportes.index', 'label' => 'Reportes', 'icon' => 'reports'],
-        ['route' => 'vias.index', 'label' => 'Vias', 'icon' => 'roads'],
-        ['route' => 'inspecciones.index', 'label' => 'Inspecciones', 'icon' => 'inspection'],
+        ['route' => 'vias.index', 'label' => 'Vias', 'icon' => 'roads', 'roles' => ['AUTORIDAD', 'INSPECTOR', 'SUPERVISOR']],
+        ['route' => 'inspecciones.index', 'label' => 'Inspecciones', 'icon' => 'inspection', 'roles' => ['AUTORIDAD', 'INSPECTOR', 'SUPERVISOR']],
         ['route' => 'ordenes.index', 'label' => 'Órdenes', 'icon' => 'orders', 'roles' => ['AUTORIDAD', 'SUPERVISOR']],
-        ['route' => 'cuadrillas.index', 'label' => 'Cuadrillas', 'icon' => 'crews'],
+        ['route' => 'cuadrillas.index', 'label' => 'Cuadrillas', 'icon' => 'crews', 'roles' => ['AUTORIDAD', 'INSPECTOR', 'SUPERVISOR']],
     ];
 @endphp
 
@@ -26,6 +26,7 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('head')
 </head>
 
 <body class="font-sans antialiased bg-slate-100 text-slate-900">
@@ -137,5 +138,7 @@
         overlay.classList.toggle('hidden');
     }
 </script>
+@stack('scripts')
 </body>
 </html>
+    

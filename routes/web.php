@@ -6,6 +6,7 @@ use App\Http\Controllers\ExportacionController;
 use App\Http\Controllers\OrdenTrabajoController;
 use App\Http\Controllers\PrioridadController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReporteController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -22,6 +23,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/estadisticas', [EstadisticaController::class, 'index'])
         ->name('estadisticas.index');
+
+    Route::resource('reportes', ReporteController::class)
+        ->only(['index', 'create', 'store', 'show']);
 
     Route::resource('ordenes', OrdenTrabajoController::class)
         ->parameters(['ordenes' => 'orden'])
