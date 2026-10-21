@@ -1,0 +1,70 @@
+/* Paleta del panel: petróleo, blanco, menta y cian. */
+.gv-panel { background: #e7eff5; color: #132d46; }
+.gv-panel #sidebar {
+    background: #07343e; border-color: #275664; flex-shrink: 0;
+    display: flex; flex-direction: column; position: fixed; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: #396570 #07343e;
+}
+.gv-panel #sidebar > div:first-child { min-height: 88px; flex-shrink: 0; border-color: #315765; }
+.gv-sidebar-logo { background: #a9e5d4; border: 1px solid #95d8c6; border-radius: 12px; padding: 3px; width: 48px; height: 48px; }
+.gv-panel #sidebar > div:first-child p:first-child { font-size: 23px; letter-spacing: -.5px; }
+.gv-panel #sidebar > div:first-child p:last-child { color: #afc8d2; margin-top: 2px; }
+.gv-panel #sidebar nav { padding: 20px 16px; }
+.gv-panel #sidebar nav > p { color: #a9c8d3; font-size: 10px; padding-bottom: 16px; }
+.gv-panel #sidebar nav a { color: #deedf2; padding: 12px 14px; border-radius: 10px; margin-bottom: 4px; font-weight: 500; }
+.gv-panel #sidebar nav a svg { width: 22px; height: 22px; }
+.gv-panel #sidebar nav a:hover { background: #204b57; color: #fff; }
+.gv-panel #sidebar nav a[class*="text-emerald-300"] { background: #c0f6e4; color: #07343e; box-shadow: none; font-weight: 700; }
+.gv-panel #sidebar > div:last-child { position: static; margin-top: auto; border-color: #315765; }
+.gv-panel #sidebar > div:last-child > div { background: #193f4c; }
+.gv-panel #sidebar > div:last-child p:last-child { color: #afc8d2; }
+.gv-panel-header { min-height: 76px; height: auto; padding-top: 14px; padding-bottom: 14px; gap: 16px; background: #f8fbfd; border-color: #cedee8; }
+.gv-panel-header h1 { font-size: 23px; letter-spacing: -.6px; color: #102c46; }
+.gv-panel-header p { color: #526f86; margin-top: 4px; }
+.gv-dashboard-page .gv-panel-header {
+    position: relative; margin: 24px 24px 0; padding: 26px; min-height: 136px;
+    border: 1px solid #d3e5eb; border-radius: 18px;
+    background: linear-gradient(90deg, rgba(219,244,236,.94) 0%, rgba(220,241,239,.76) 35%, rgba(206,235,239,.12) 75%, rgba(206,235,239,.04) 100%),
+        url('../images/puerto-barrios-auth.png') right 48% / cover;
+    box-shadow: 0 5px 20px #193f4c06;
+}
+.gv-dashboard-page .gv-panel-header h1 { font-size: 30px; font-weight: 700; }
+.gv-dashboard-page .gv-panel-header p { font-size: 14px; }
+.gv-panel .gv-card { border: 1px solid #d3e2eb; border-radius: 15px; box-shadow: 0 4px 15px #173e5005; overflow: hidden; }
+.gv-panel .gv-card-header { border-color: #e6eef3; padding: 20px 22px; }
+.gv-panel .gv-card-body { padding: 22px; }
+.gv-panel .gv-title { color: #132e48; font-size: 17px; letter-spacing: -.3px; }
+.gv-panel .gv-muted, .gv-panel .gv-muted-xs { color: #5d778b; }
+.gv-panel .gv-stat-number { color: #102c46; font-weight: 700; letter-spacing: -1px; }
+.gv-metric { position: relative; border-top: 3px solid #b7e9d9 !important; }
+.gv-metric h2 { color: #506b7e; }
+.gv-metric-dark { background: #153f4d; border-color: #285b69 !important; border-top-color: #54cce0 !important; }
+.gv-metric-dark h2, .gv-metric-dark .gv-muted-xs { color: #c4e0e8; }
+.gv-metric-dark .gv-stat-number { color: white; }
+.gv-metric-soft { background: #f0f8fa; border-top-color: #b5e1ea !important; }
+@media (min-width: 1200px) {
+    .gv-dashboard-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.gv-panel .gv-table-head { background: #eaf1f6; color: #526f86; }
+.gv-panel .gv-table-cell { padding: 15px 20px; }
+.gv-panel .gv-table tbody tr:hover { background: #f2f9f8; }
+.gv-panel .gv-primary-button { background: #087f68; border-radius: 10px; box-shadow: 0 2px 5px #087f6810; }
+.gv-panel .gv-primary-button:hover { background: #076c59; }
+.gv-panel a:focus-visible, .gv-panel button:focus-visible { outline: 3px solid #19aec8; outline-offset: 3px; }
+@media (min-width: 768px) {
+    .gv-panel #sidebar { position: sticky; top: 0; height: 100vh; }
+}
+@media (max-height: 760px) {
+    .gv-panel #sidebar > div:first-child { min-height: 76px; }
+    .gv-panel #sidebar nav { padding: 12px 14px; }
+    .gv-panel #sidebar nav > p { padding-bottom: 8px; }
+    .gv-panel #sidebar nav a { padding: 8px 12px; margin-bottom: 2px; }
+    .gv-panel #sidebar > div:last-child { padding: 10px 14px; }
+}
+@media (max-width: 767px) {
+    .gv-dashboard-page .gv-panel-header { margin: 12px 12px 0; padding: 18px; min-height: 120px; }
+    .gv-dashboard-page .gv-panel-header h1 { font-size: 24px; }
+    .gv-panel-header { flex-wrap: wrap; }
+    .gv-panel-header > div:last-child { flex-wrap: wrap; }
+    .gv-panel .gv-table-cell { padding: 12px; }
+}
