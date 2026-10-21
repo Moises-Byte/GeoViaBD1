@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @php
-    $title = 'Dashboard municipal';
+    $title = 'Dashboard';
 @endphp
 
 @section('actions')
@@ -9,40 +9,27 @@
 @endsection
 
 @section('slot')
-    <div class="space-y-6">
-        <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="Indicadores de gestión municipal">
-            <article class="gv-card gv-card-body">
+    <div class="gv-municipal space-y-6">
+        <section class="gv-dashboard-metrics grid gap-4 sm:grid-cols-2" aria-label="Indicadores de gestión municipal">
+            <article class="gv-card gv-card-body gv-metric">
                 <h2 class="text-sm font-medium text-slate-500">Reportes registrados</h2>
                 <p class="gv-stat-number">{{ number_format($totalReportes) }}</p>
                 <p class="gv-muted-xs mt-3">Todos los estados.</p>
             </article>
-            <article class="gv-card gv-card-body">
+            <article class="gv-card gv-card-body gv-metric">
                 <h2 class="text-sm font-medium text-slate-500">Reportes pendientes</h2>
                 <p class="gv-stat-number">{{ $porEstado['PENDIENTE'] }}</p>
-                <p class="gv-muted-xs mt-3">Esperando validación municipal.</p>
+                <p class="gv-muted-xs mt-3">Por validar.</p>
             </article>
-            <article class="gv-card gv-card-body">
+            <article class="gv-card gv-card-body gv-metric gv-metric-dark">
                 <h2 class="text-sm font-medium text-slate-500">Órdenes activas</h2>
                 <p class="gv-stat-number">{{ $ordenesActivas }}</p>
                 <p class="gv-muted-xs mt-3">Pendientes o en proceso.</p>
             </article>
-            <article class="gv-card gv-card-body">
+            <article class="gv-card gv-card-body gv-metric">
                 <h2 class="text-sm font-medium text-slate-500">Reportes finalizados</h2>
                 <p class="gv-stat-number">{{ $porEstado['FINALIZADO'] }}</p>
-                <p class="gv-muted-xs mt-3">Reparaciones con el reporte cerrado.</p>
-            </article>
-            <article class="gv-card gv-card-body">
-                <h2 class="text-sm font-medium text-slate-500">Tiempo promedio de resolución</h2>
-                <p class="gv-stat-number">
-                    {{ $tiempoPromedio === null ? '—' : number_format($tiempoPromedio, 2) }}
-                    @if ($tiempoPromedio !== null)<span class="text-sm font-medium text-slate-500">días</span>@endif
-                </p>
-                <p class="gv-muted-xs mt-3">{{ $tiempoPromedio === null ? 'Aún no hay cierres con fechas válidas.' : 'Desde el reporte hasta el cierre de la reparación.' }}</p>
-            </article>
-            <article class="gv-card gv-card-body">
-                <h2 class="text-sm font-medium text-slate-500">Cuadrilla más activa</h2>
-                <p class="mt-3 text-lg font-semibold text-slate-900">{{ $cuadrillaMasActiva?->nombre ?? 'Sin asignaciones' }}</p>
-                <p class="gv-muted-xs mt-3">{{ $cuadrillaMasActiva ? ((int) $cuadrillaMasActiva->ordenes_trabajo_count).' órdenes asignadas en total.' : 'Todavía no se han asignado órdenes.' }}</p>
+                <p class="gv-muted-xs mt-3">Reparaciones terminadas.</p>
             </article>
         </section>
 
