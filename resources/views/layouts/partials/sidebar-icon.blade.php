@@ -1,6 +1,7 @@
 @php
     $paths = [
         'dashboard' => 'M3 10 12 3l9 7M5 9v12h5v-7h4v7h5V9',
+        'map' => 'M3 6 9 3l6 3 6-3v15l-6 3-6-3-6 3zM9 3v15m6-12v15',
         'priority' => 'M9 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3M9 3h6v4H9zM8 12h1m3 0h4M8 17h1m3 0h4',
         'statistics' => 'M3 14h4v7H3zM10 9h4v12h-4zM17 3h4v18h-4z',
         'reports' => 'M5 3h9l5 5v13H5zM14 3v6h5M9 13h6M9 17h6',

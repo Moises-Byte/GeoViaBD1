@@ -11,11 +11,19 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CuadrillaController;
 use App\Http\Controllers\InspeccionController;
 use App\Http\Controllers\ViaController;
+use App\Http\Controllers\MapaPublicoController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
+// Mapa público de alertas: no requiere iniciar sesión.
+Route::get('/mapa', [MapaPublicoController::class, 'index'])
+    ->name('mapa.publico');
+
+Route::get('/api/mapa/reportes', [MapaPublicoController::class, 'reportes'])
+    ->name('mapa.reportes');
+    
 Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
