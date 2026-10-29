@@ -8,6 +8,9 @@ use App\Http\Controllers\PrioridadController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReporteController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CuadrillaController;
+use App\Http\Controllers\InspeccionController;
+use App\Http\Controllers\ViaController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
@@ -26,6 +29,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('reportes', ReporteController::class)
         ->only(['index', 'create', 'store', 'show']);
+
+        Route::resource('vias', ViaController::class)
+        ->parameters(['vias' => 'via'])
+        ->except(['show']);
+
+    Route::resource('cuadrillas', CuadrillaController::class)
+        ->parameters(['cuadrillas' => 'cuadrilla'])
+        ->except(['show']);
+
+    Route::resource('inspecciones', InspeccionController::class)
+        ->parameters(['inspecciones' => 'inspeccion']);
 
     Route::resource('ordenes', OrdenTrabajoController::class)
         ->parameters(['ordenes' => 'orden'])
