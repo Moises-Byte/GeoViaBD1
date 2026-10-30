@@ -71,6 +71,29 @@
                     <a class="btn btn-primary" style="width:100%;margin-top:12px" href="{{ route('login') }}">Inicia sesión para reportar</a>
                 @endauth
             </section>
+            <section class="side-card">
+                <h2>Alertas cercanas a mí</h2>
+
+                <div class="nearby-tools">
+                    <label for="radio-cercania">Radio:</label>
+                    <select id="radio-cercania">
+                        <option value="1000">1 km</option>
+                        <option value="3000" selected>3 km</option>
+                        <option value="5000">5 km</option>
+                        <option value="10000">10 km</option>
+                    </select>
+                </div>
+
+                <p id="aviso-cercania" class="nearby-note">
+                    Pulsa “Mi ubicación” para encontrar reportes próximos a ti.
+                </p>
+
+                <div id="lista-cercanos" class="recent-list">
+                    <div class="empty">
+                        Tu ubicación no se consulta automáticamente.
+                    </div>
+                </div>
+            </section>
             <section class="side-card recent-card">
                 <h2>Alertas más recientes</h2>
                 <div id="lista-recientes" class="recent-list"><div class="empty">Estamos cargando los reportes.</div></div>
@@ -84,6 +107,7 @@
 (() => {
     'use strict';
     const apiUrl = @json($urlReportes);
+    const urlCrearReporte = @json($urlCrearReporte);
     const centro = [@json($mapa['latitud']), @json($mapa['longitud'])];
     const zoomInicial = @json($mapa['zoom']);
     const colores = { PENDIENTE: '#d97706', VALIDADO: '#2563eb', 'EN REPARACION': '#ea580c' };
@@ -98,6 +122,11 @@
     const capaMarcadores = L.layerGroup().addTo(mapa);
     const estadoMapa = document.getElementById('estado-mapa');
     const listaRecientes = document.getElementById('lista-recientes');
+    const listaCercanos = document.getElementById('lista-cercanos');
+    const avisoCercania = document.getElementById('aviso-cercania');
+    const selectorRadio = document.getElementById('radio-cercania');
+
+    let ubicacionUsuario = null;
     let reportes = [];
     let marcadorUsuario = null;
     let circuloUsuario = null;
@@ -116,7 +145,22 @@
     function popup(reporte) {
         const c = colorEstado(reporte.estado);
         const foto = reporte.foto ? `<img class="popup-photo" src="${escapar(reporte.foto)}" alt="Fotografía del daño" loading="lazy" onerror="this.remove()">` : '';
-        return `<div style="--c:${c};--bg:${c}18"><span class="popup-state">${escapar(etiquetaEstado(reporte.estado))}</span><h3 class="popup-title">${escapar(reporte.tipo)}</h3><p style="margin:0 0 6px;color:#647b80;font-size:.78rem">${escapar(reporte.via || 'Vía sin nombre')}</p>${foto}<p class="popup-desc">${escapar(reporte.descripcion || 'Sin descripción adicional.')}</p><div class="popup-date">Reportado: ${escapar(fechaBonita(reporte.fecha))} · #${escapar(reporte.id)}</div></div>`;
+        const accion = urlCrearReporte
+            ? `<a class="popup-action"
+                href="${urlCrearReporte}?lat=${encodeURIComponent(reporte.lat)}&lng=${encodeURIComponent(reporte.lng)}">
+                ＋ Reportar en este punto
+            </a>`
+        : '';   
+        return `
+            <div style="--c:${c};--bg:${c}18">
+                <span class="popup-state">${escapar(etiquetaEstado(reporte.estado))}</span>
+                <h3 class="popup-title">${escapar(reporte.tipo)}</h3>
+                <p style="margin:0 0 6px;color:#647b80;font-size:.78rem">${escapar(reporte.via || 'Vía sin nombre')}</p>${foto}
+                <p class="popup-desc">${escapar(reporte.descripcion || 'Sin descripción adicional.')}</p>
+                <div class="popup-date">Reportado: ${escapar(fechaBonita(reporte.fecha))} · #${escapar(reporte.id)}
+                    ${accion}
+            </div></div>`;
+        
     }
     function pintarLista() {
         const recientes = [...reportes].sort((a,b) => String(b.fecha || '').localeCompare(String(a.fecha || '')) || b.id-a.id).slice(0, 8);
@@ -125,6 +169,69 @@
             return;
         }
         listaRecientes.innerHTML = recientes.map(r => `<button type="button" class="recent-item" data-id="${Number(r.id)}" style="--c:${colorEstado(r.estado)}"><span class="recent-pin"></span><span><strong>${escapar(r.tipo)}</strong><span>${escapar(r.via || 'Vía sin nombre')}<br>${escapar(etiquetaEstado(r.estado))} · ${escapar(fechaBonita(r.fecha))}</span></span></button>`).join('');
+    }
+    function distanciaMetros(a, b) {
+        const radioTierra = 6371000;
+        const rad = grados => grados * Math.PI / 180;
+
+        const dLat = rad(b.lat - a.lat);
+        const dLng = rad(b.lng - a.lng);
+
+        const valor =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(rad(a.lat)) *
+            Math.cos(rad(b.lat)) *
+            Math.sin(dLng / 2) ** 2;
+
+        return 2 * radioTierra *
+            Math.atan2(Math.sqrt(valor), Math.sqrt(1 - valor));
+    }
+    function formatoDistancia(metros) {
+        return metros < 1000
+            ? `${Math.round(metros / 10) * 10} m`
+            : `${(metros / 1000).toFixed(1)} km`;
+    }
+    function pintarCercanos() {
+        if (!ubicacionUsuario) return;
+
+        const radio = Number(selectorRadio.value);
+
+        const cercanos = reportes.map(r => ({
+            reporte: r,
+            distancia: distanciaMetros(
+                ubicacionUsuario,
+                { lat: Number(r.lat), lng: Number(r.lng) }
+            )
+    }))
+        .filter(item =>
+            Number.isFinite(item.distancia) &&
+            item.distancia <= radio
+        )
+        .sort((a, b) => a.distancia - b.distancia)
+        .slice(0, 8);
+
+        avisoCercania.textContent =
+            `${cercanos.length} alerta(s) dentro de ${radio / 1000} km de tu ubicación.`;
+
+        if (!cercanos.length) {
+            listaCercanos.innerHTML =
+                '<div class="empty">No encontramos alertas dentro de este radio.</div>';
+            return;
+        }
+
+        listaCercanos.innerHTML = cercanos.map(({ reporte: r, distancia }) =>
+            `<button type="button"
+                class="recent-item"
+                data-cercano-id="${Number(r.id)}"
+                style="--c:${colorEstado(r.estado)}">
+                <span class="recent-pin"></span>
+                <span>
+                    <strong>${escapar(r.tipo)} · ${formatoDistancia(distancia)}</strong>
+                    <span>${escapar(r.via || 'Vía sin nombre')}<br>
+                    ${escapar(etiquetaEstado(r.estado))}</span>
+                </span>
+            </button>`
+        ).join('');
     }
     function pintarResumen() {
         document.getElementById('total-activos').textContent = reportes.length;
@@ -156,7 +263,10 @@
             const json = await respuesta.json();
             if (!json || !Array.isArray(json.data)) throw new Error('Formato de respuesta no válido');
             reportes = json.data;
-            pintarMarcadores(); pintarLista(); pintarResumen();
+            pintarMarcadores();
+            pintarLista();
+            pintarResumen();
+            pintarCercanos();
             const momento = new Intl.DateTimeFormat('es-GT',{hour:'2-digit',minute:'2-digit'}).format(new Date());
             document.getElementById('actualizado').textContent = `Actualizado a las ${momento}`;
             estadoMapa.textContent = reportes.length ? `${reportes.length} alerta(s) activa(s) en el mapa.` : 'No hay alertas activas para mostrar. Si detectas un daño, repórtalo a GeoVía.';
@@ -175,27 +285,51 @@
         estadoMapa.textContent = 'Solicitando permiso de ubicación…';
         navigator.geolocation.getCurrentPosition(pos => {
             const ll = [pos.coords.latitude, pos.coords.longitude];
+            ubicacionUsuario = {
+                lat: ll[0],
+                lng: ll[1]
+            };
             if (marcadorUsuario) mapa.removeLayer(marcadorUsuario);
             if (circuloUsuario) mapa.removeLayer(circuloUsuario);
             marcadorUsuario = L.circleMarker(ll,{radius:7,color:'#fff',weight:3,fillColor:'#0f766e',fillOpacity:1}).addTo(mapa).bindPopup('Tu ubicación actual');
             circuloUsuario = L.circle(ll,{radius:pos.coords.accuracy,color:'#0f766e',weight:1,fillOpacity:.08,interactive:false}).addTo(mapa);
             mapa.flyTo(ll,16); marcadorUsuario.openPopup();
             estadoMapa.textContent = 'Mostrando tu ubicación. Solo se usa en este navegador.';
+            pintarCercanos();
         }, err => {
             estadoMapa.textContent = err.code === 1 ? 'Permiso denegado. Puedes seguir explorando el mapa sin compartir tu ubicación.' : 'No pudimos obtener tu ubicación. Inténtalo de nuevo o mueve el mapa.';
         }, {enableHighAccuracy:true, timeout:12000, maximumAge:30000});
     });
-    listaRecientes.addEventListener('click', e => {
-        const button = e.target.closest('[data-id]');
-        if (!button) return;
-        const r = reportes.find(x => Number(x.id) === Number(button.dataset.id));
+    function enfocarReporte(id) {
+        const r = reportes.find(x => Number(x.id) === Number(id));
         if (!r) return;
-        mapa.flyTo([Number(r.lat),Number(r.lng)],17);
+
+        mapa.flyTo([Number(r.lat), Number(r.lng)], 17);
+
         capaMarcadores.eachLayer(marker => {
             const ll = marker.getLatLng();
-            if (Math.abs(ll.lat-Number(r.lat)) < 1e-8 && Math.abs(ll.lng-Number(r.lng)) < 1e-8) marker.openPopup();
+
+            if (
+                Math.abs(ll.lat - Number(r.lat)) < 1e-8 &&
+                Math.abs(ll.lng - Number(r.lng)) < 1e-8
+            ) {
+                marker.openPopup();
+            }
         });
+    }
+
+    listaRecientes.addEventListener('click', e => {
+        const button = e.target.closest('[data-id]');
+        if (button) enfocarReporte(button.dataset.id);
     });
+
+    listaCercanos.addEventListener('click', e => {
+        const button = e.target.closest('[data-cercano-id]');
+        if (button) enfocarReporte(button.dataset.cercanoId);
+    });
+
+    selectorRadio.addEventListener('change', pintarCercanos);
+
     cargar();
     window.setInterval(() => { if (!document.hidden) cargar(false); }, 60000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) cargar(false); });

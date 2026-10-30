@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Http\Controllers;
@@ -22,6 +21,9 @@ class MapaPublicoController extends Controller
         return view('mapa.index', [
             'mapa' => config('geovia.mapa'),
             'urlReportes' => route('mapa.reportes'),
+            'urlCrearReporte' => auth()->check()
+                ? route('reportes.create')
+                : null,
         ]);
     }
 
