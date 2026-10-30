@@ -198,23 +198,31 @@
     const selectorRadio = document.getElementById('radio-cercania');
     const selectorEstado = document.getElementById('filtro-estado');
     const buscadorDano = document.getElementById('buscar-dano');
+    const fechaDesde = document.getElementById('fecha-desde');
+    const fechaHasta = document.getElementById('fecha-hasta');
 
     let ubicacionUsuario = null;
     let reportes = [];
 
     function reportesVisibles() {
         const estadoSeleccionado = selectorEstado.value;
+
         const textoBusqueda = buscadorDano.value
             .trim()
             .toLowerCase()
             .normalize('NFD')
             .replace(/[\u0300-\u036f]/g, '');
 
+        const desde = fechaDesde.value;
+        const hasta = fechaHasta.value;
+
         return reportes.filter(r => {
+            // Filtro por estado
             const coincideEstado =
                 estadoSeleccionado === 'TODOS' ||
                 r.estado === estadoSeleccionado;
 
+            // Filtro por tipo de daño
             const tipoDano = String(r.tipo || '')
                 .toLowerCase()
                 .normalize('NFD')
@@ -222,7 +230,19 @@
 
             const coincideBusqueda = tipoDano.includes(textoBusqueda);
 
-            return coincideEstado && coincideBusqueda;
+            // Filtro por fecha
+            const fechaReporte = String(r.fecha || '').slice(0, 10);
+
+            const coincideDesde =
+                !desde || (fechaReporte && fechaReporte >= desde);
+
+            const coincideHasta =
+                !hasta || (fechaReporte && fechaReporte <= hasta);
+
+            return coincideEstado &&
+                coincideBusqueda &&
+                coincideDesde &&
+                coincideHasta;
         });
     }
     let marcadorUsuario = null;
@@ -441,6 +461,9 @@
         selectorEstado.addEventListener('change', actualizarVistaFiltrada);
 
         buscadorDano.addEventListener('input', actualizarVistaFiltrada);
+        fechaDesde.addEventListener('change', actualizarVistaFiltrada);
+
+        fechaHasta.addEventListener('change', actualizarVistaFiltrada);
 
     cargar();
     window.setInterval(() => { if (!document.hidden) cargar(false); }, 60000);
