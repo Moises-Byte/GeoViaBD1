@@ -1,13 +1,22 @@
 @extends('layouts.app')
 
-@php $title = 'Prioridades de atención'; @endphp
+@php
+    $title = 'Prioridades de atención';
+    $esAutoridad = Auth::user()->rol === 'AUTORIDAD';
+@endphp
 
 @section('actions')
-    <form method="POST" action="{{ route('prioridades.recalcular') }}">
-        @csrf
-        <button type="submit" class="gv-primary-button">Recalcular prioridades</button>
-    </form>
+    @if ($esAutoridad)
+        <form method="POST" action="{{ route('prioridades.recalcular') }}">
+            @csrf
+
+            <button type="submit" class="gv-primary-button">
+                Recalcular prioridades
+            </button>
+        </form>
+    @endif
 @endsection
+
 
 @section('slot')
     <div class="gv-priorities space-y-6">

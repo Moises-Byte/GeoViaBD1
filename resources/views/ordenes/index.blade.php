@@ -1,13 +1,24 @@
 @extends('layouts.app')
 
 @php
-    $title = 'Órdenes de trabajo';
-    $estadosOrden = ['PENDIENTE' => 'Pendiente', 'EN PROCESO' => 'En proceso', 'FINALIZADA' => 'Finalizada'];
+    $esAutoridad = Auth::user()->rol === 'AUTORIDAD';
+    $title = $esAutoridad ? 'Órdenes de trabajo' : 'Mis órdenes de trabajo';
+
+    $estadosOrden = [
+        'PENDIENTE' => 'Pendiente',
+        'EN PROCESO' => 'En proceso',
+        'FINALIZADA' => 'Finalizada',
+    ];
 @endphp
 
 @section('actions')
-    <a href="{{ route('ordenes.create') }}" class="gv-primary-button">+ Nueva orden</a>
+    @if ($esAutoridad)
+        <a href="{{ route('ordenes.create') }}" class="gv-primary-button">
+            + Nueva orden
+        </a>
+    @endif
 @endsection
+
 
 @section('slot')
     <div class="space-y-6">

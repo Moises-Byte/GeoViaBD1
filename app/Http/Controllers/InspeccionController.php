@@ -18,6 +18,11 @@ class InspeccionController extends Controller
 
     private const RESULTADOS = ['APROBADO', 'RECHAZADO'];
 
+    protected function rolesGestion(): array
+    {
+        return ['AUTORIDAD', 'INSPECTOR'];
+    }
+
     public function index(Request $request): View
     {
         $this->exigirConsulta($request);
