@@ -198,9 +198,30 @@
             mapa.on('click', function (e) { colocar(e.latlng.lat, e.latlng.lng, false); });
 
             // Conservar el marcador si el formulario volvió con errores.
+            // Priorizar los valores anteriores si el formulario volvió con errores.
             const latPrevia = parseFloat(latInput.value);
             const lngPrevia = parseFloat(lngInput.value);
-            if (!isNaN(latPrevia) && !isNaN(lngPrevia)) colocar(latPrevia, lngPrevia, true);
+
+            if (Number.isFinite(latPrevia) && Number.isFinite(lngPrevia)) {
+                colocar(latPrevia, lngPrevia, true);
+            } else {
+                // Recibir las coordenadas del mapa público.
+                const parametros = new URLSearchParams(window.location.search);
+
+                const latEnlace = Number(parametros.get('lat'));
+                const lngEnlace = Number(parametros.get('lng'));
+
+                if (
+                    parametros.has('lat') &&
+                    parametros.has('lng') &&
+                    Number.isFinite(latEnlace) &&
+                    Number.isFinite(lngEnlace) &&
+                    Math.abs(latEnlace) <= 90 &&
+                    Math.abs(lngEnlace) <= 180
+                ) {
+                    colocar(latEnlace, lngEnlace, true);
+                }
+            }
 
             boton.addEventListener('click', function () {
                 aviso.classList.add('hidden');

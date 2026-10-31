@@ -3,6 +3,7 @@
 
     $navItems = [
         ['route' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'dashboard'],
+        ['route' => 'mapa.publico', 'label' => 'Mapa público', 'icon' => 'map'],
         ['route' => 'prioridades.index', 'label' => 'Prioridades', 'icon' => 'priority', 'roles' => ['AUTORIDAD', 'SUPERVISOR']],
         ['route' => 'estadisticas.index', 'label' => 'Estadísticas', 'icon' => 'statistics', 'roles' => ['AUTORIDAD', 'SUPERVISOR']],
         ['route' => 'reportes.index', 'label' => 'Reportes', 'icon' => 'reports'],
