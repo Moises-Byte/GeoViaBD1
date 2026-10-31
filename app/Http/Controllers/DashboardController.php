@@ -11,12 +11,14 @@ use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, EstadisticaService $estadisticas): View|RedirectResponse
-    {
+    public function __invoke(
+        Request $request,
+        EstadisticaService $estadisticas
+    ): View|RedirectResponse {
         return match ($request->user()?->rol) {
-            'AUTORIDAD', 'SUPERVISOR' => $this->vistaMunicipal($estadisticas),
-            // El inspector aún no tiene panel propio: va directo a la lista de reportes.
-            'INSPECTOR' => redirect()->route('reportes.index'),
+            'AUTORIDAD' => $this->vistaMunicipal($estadisticas),
+            'SUPERVISOR' => redirect()->route('ordenes.index'),
+            'INSPECTOR' => redirect()->route('inspecciones.index'),
             default => $this->vistaVecino($request),
         };
     }

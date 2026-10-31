@@ -2,16 +2,19 @@
 
 @php
     $title = 'Prioridad de reportes';
+    $esAutoridad = Auth::user()->rol === 'AUTORIDAD';
 @endphp
 
 @section('actions')
-    <form method="POST" action="{{ route('prioridades.recalcular') }}">
-        @csrf
+    @if ($esAutoridad)
+        <form method="POST" action="{{ route('prioridades.recalcular') }}">
+            @csrf
 
-        <button type="submit" class="gv-primary-button">
-            Recalcular prioridades
-        </button>
-    </form>
+            <button type="submit" class="gv-primary-button">
+                Recalcular prioridades
+            </button>
+        </form>
+    @endif
 @endsection
 
 @section('slot')
@@ -36,10 +39,12 @@
                 tiempo sin mantenimiento hasta 30 y tráfico hasta 30.
             </p>
 
-            <p class="mt-2 text-sm text-slate-500">
-                Pulsa “Recalcular prioridades” para actualizar los puntajes
-                con los datos actuales.
-            </p>
+            @if ($esAutoridad)
+                <p class="mt-2 text-sm text-slate-500">
+                    Pulsa “Recalcular prioridades” para actualizar los
+                    puntajes con los datos actuales.
+                </p>
+            @endif
         </section>
 
         <section class="gv-card">
@@ -52,43 +57,64 @@
             <div class="overflow-x-auto">
                 <table class="gv-table">
                     <thead class="gv-table-head">
-                        <tr>
-                            <th scope="col" class="gv-table-cell">Reporte</th>
-                            <th scope="col" class="gv-table-cell">Descripción</th>
-                            <th scope="col" class="gv-table-cell">Vía</th>
-                            <th scope="col" class="gv-table-cell">Tipo de daño</th>
-                            <th scope="col" class="gv-table-cell">Tráfico</th>
-                            <th scope="col" class="gv-table-cell">Fecha</th>
-                            <th scope="col" class="gv-table-cell">Puntaje</th>
-                        </tr>
+                    <tr>
+                        <th scope="col" class="gv-table-cell">Reporte</th>
+                        <th scope="col" class="gv-table-cell">Descripción</th>
+                        <th scope="col" class="gv-table-cell">Vía</th>
+                        <th scope="col" class="gv-table-cell">Tipo de daño</th>
+                        <th scope="col" class="gv-table-cell">Tráfico</th>
+                        <th scope="col" class="gv-table-cell">Fecha</th>
+                        <th scope="col" class="gv-table-cell">Puntaje</th>
+                    </tr>
                     </thead>
 
                     <tbody class="divide-y divide-slate-100">
-                        @forelse ($reportes as $reporte)
-                            <tr>
-                                <td class="gv-table-cell">#{{ $reporte->id_reporte }}</td>
-                                <td class="gv-table-cell">{{ $reporte->descripcion }}</td>
-                                <td class="gv-table-cell">{{ $reporte->via?->nombre_via ?? 'Sin vía' }}</td>
-                                <td class="gv-table-cell">{{ $reporte->tipoDano?->nombre ?? 'Sin tipo' }}</td>
-                                <td class="gv-table-cell">{{ $reporte->via?->nivel_trafico ?? 'Sin dato' }}</td>
-                                <td class="gv-table-cell">{{ $reporte->fecha_reporte?->format('d/m/Y') }}</td>
-                                <td class="gv-table-cell font-bold text-emerald-700">
-                                    {{ $reporte->prioridad }} / 100
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="px-5 py-8 text-center text-slate-500">
-                                    Todavía no hay reportes validados.
-                                </td>
-                            </tr>
-                        @endforelse
+                    @forelse ($reportes as $reporte)
+                        <tr>
+                            <td class="gv-table-cell">
+                                #{{ $reporte->id_reporte }}
+                            </td>
+
+                            <td class="gv-table-cell">
+                                <p class="max-w-md whitespace-pre-line break-words">{{ $reporte->descripcion }}</p>
+                            </td>
+
+                            <td class="gv-table-cell">
+                                {{ $reporte->via?->nombre_via ?? 'Sin vía' }}
+                            </td>
+
+                            <td class="gv-table-cell">
+                                {{ $reporte->tipoDano?->nombre ?? 'Sin tipo' }}
+                            </td>
+
+                            <td class="gv-table-cell">
+                                {{ $reporte->via?->nivel_trafico ?? 'Sin dato' }}
+                            </td>
+
+                            <td class="gv-table-cell whitespace-nowrap">
+                                {{ $reporte->fecha_reporte?->format('d/m/Y') }}
+                            </td>
+
+                            <td class="gv-table-cell whitespace-nowrap font-bold text-emerald-700">
+                                {{ $reporte->prioridad }} / 100
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7"
+                                class="px-5 py-8 text-center text-slate-500">
+                                Todavía no hay reportes validados.
+                            </td>
+                        </tr>
+                    @endforelse
                     </tbody>
                 </table>
             </div>
 
             @if ($reportes->hasPages())
-                <div class="p-4">{{ $reportes->links() }}</div>
+                <div class="p-4">
+                    {{ $reportes->links() }}
+                </div>
             @endif
         </section>
     </div>

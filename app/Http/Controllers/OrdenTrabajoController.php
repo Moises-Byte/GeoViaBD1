@@ -19,7 +19,20 @@ class OrdenTrabajoController extends Controller
     {
         $this->verificarAcceso($request);
 
-        $ordenes = OrdenTrabajo::with(['reporte.via', 'cuadrilla', 'supervisor'])
+        $ordenes = OrdenTrabajo::with([
+            'reporte.via',
+            'cuadrilla',
+            'supervisor',
+        ])
+            ->when(
+                $request->user()->rol === 'SUPERVISOR',
+                function ($consulta) use ($request) {
+                    $consulta->where(
+                        'usuario_id_usuario',
+                        $request->user()->id_usuario
+                    );
+                }
+            )
             ->orderByDesc('fecha_asignacion')
             ->orderByDesc('id_orden')
             ->paginate(10);
@@ -29,7 +42,7 @@ class OrdenTrabajoController extends Controller
 
     public function create(Request $request): View
     {
-        $this->verificarAcceso($request);
+        $this->verificarCreacion($request);
 
         $reportes = Reporte::with(['via', 'tipoDano'])
             ->where('estado', 'VALIDADO')
@@ -47,7 +60,7 @@ class OrdenTrabajoController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $this->verificarAcceso($request);
+        $this->verificarCreacion($request);
 
         $datos = $request->validate([
             'reporte_id_reporte' => ['required', 'integer', Rule::exists('reporte', 'id_reporte')],
@@ -196,12 +209,22 @@ class OrdenTrabajoController extends Controller
         );
     }
 
-    private function verificarResponsable(Request $request, OrdenTrabajo $orden): void
-    {
+    private function verificarResponsable(
+        Request $request,
+        OrdenTrabajo $orden
+    ): void {
         $this->verificarAcceso($request);
+
+        $usuario = $request->user();
+
+        $esAutoridad = $usuario->rol === 'AUTORIDAD';
+
+        $esSupervisorAsignado = $usuario->rol === 'SUPERVISOR'
+            && (int) $usuario->id_usuario
+            === (int) $orden->usuario_id_usuario;
+
         abort_unless(
-            $request->user()->rol === 'AUTORIDAD'
-                || (int) $request->user()->id_usuario === (int) $orden->usuario_id_usuario,
+            $esAutoridad || $esSupervisorAsignado,
             403,
             'Solo la autoridad o el supervisor asignado pueden actualizar esta orden.'
         );
@@ -225,5 +248,13 @@ class OrdenTrabajoController extends Controller
         }
 
         return [$actual, $reporte];
+    }
+    private function verificarCreacion(Request $request): void
+    {
+        abort_unless(
+            $request->user()?->rol === 'AUTORIDAD',
+            403,
+            'Solo la autoridad municipal puede crear y asignar órdenes.'
+        );
     }
 }

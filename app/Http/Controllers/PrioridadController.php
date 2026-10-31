@@ -30,7 +30,11 @@ class PrioridadController extends Controller
         Request $request,
         PrioridadService $servicio
     ): RedirectResponse {
-        $this->verificarAcceso($request);
+        abort_unless(
+            $request->user()?->rol === 'AUTORIDAD',
+            403,
+            'Solo la autoridad municipal puede recalcular prioridades.'
+        );
 
         $cantidad = $servicio->recalcular();
 
