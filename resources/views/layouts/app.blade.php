@@ -24,22 +24,28 @@
     <title>{{ $title }} | {{ config('app.name', 'GeoVia') }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     <link rel="stylesheet" href="{{ asset('css/geovia-panel.css') }}?v={{ filemtime(public_path('css/geovia-panel.css')) }}">
+
     @stack('head')
 </head>
 
 <body class="gv-panel {{ request()->routeIs('dashboard') ? 'gv-dashboard-page' : '' }} font-sans antialiased bg-slate-100 text-slate-900">
 <div class="flex min-h-screen">
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 -translate-x-full border-r border-slate-800 bg-slate-950 text-slate-300 transition-transform duration-200 md:static md:translate-x-0">
+    <aside
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-40 w-72 -translate-x-full border-r border-slate-800 bg-slate-950 text-slate-300 transition-transform duration-200 md:static md:translate-x-0"
+    >
         <div class="flex h-16 items-center gap-3 border-b border-slate-800 px-6">
             <div class="gv-sidebar-logo flex h-10 w-10 shrink-0 items-center justify-center">
                 <svg viewBox="0 0 64 64" width="40" height="40" aria-hidden="true">
                     <defs>
                         <linearGradient id="sidebar-pin" x1="0" y1="0" x2="1" y2="1">
-                            <stop stop-color="#18b787"/><stop offset="1" stop-color="#07865e"/>
+                            <stop stop-color="#18b787"/>
+                            <stop offset="1" stop-color="#07865e"/>
                         </linearGradient>
                     </defs>
                     <path fill="url(#sidebar-pin)" d="M30 3C18 3 10 12 10 23c0 13 20 31 20 31s20-18 20-31C50 12 42 3 30 3Z"/>
@@ -62,14 +68,19 @@
 
             @foreach ($navItems as $item)
                 @continue(isset($item['roles']) && ! in_array(Auth::user()?->rol, $item['roles'], true))
+
                 @php
                     $exists = Route::has($item['route']);
-                    $isActive = $exists ? request()->routeIs(str_replace('.index', '.*', $item['route'])) : false;
+                    $isActive = $exists
+                        ? request()->routeIs(str_replace('.index', '.*', $item['route']))
+                        : false;
                     $href = $exists ? route($item['route']) : '#';
                 @endphp
 
-                <a href="{{ $href }}"
-                   class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition {{ $isActive ? 'bg-emerald-400/15 text-emerald-300' : 'text-slate-400 hover:bg-slate-900 hover:text-white' }}">
+                <a
+                    href="{{ $href }}"
+                    class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition {{ $isActive ? 'bg-emerald-400/15 text-emerald-300' : 'text-slate-400 hover:bg-slate-900 hover:text-white' }}"
+                >
                     @include('layouts.partials.sidebar-icon', ['icon' => $item['icon']])
                     <span>{{ $item['label'] }}</span>
                 </a>
@@ -77,35 +88,47 @@
         </nav>
 
         <div class="absolute inset-x-0 bottom-0 border-t border-slate-800 p-4">
-            <div class="rounded-lg bg-slate-900 p-3">
-                <p class="text-sm font-medium text-white">
+            <a
+                href="{{ route('profile.edit') }}"
+                class="block rounded-lg bg-slate-900 p-3 transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+                <p class="break-words text-sm font-medium text-white">
                     {{ Auth::user()->name ?? 'Usuario municipal' }}
                 </p>
 
-                <p class="mt-1 truncate text-xs text-slate-500">
+                <p class="mt-1 truncate text-xs text-slate-400">
                     {{ Auth::user()->email ?? 'sesion@geovia.local' }}
                 </p>
-            </div>
+
+                <span class="mt-2 block text-xs font-semibold text-emerald-300">
+                        Mi perfil
+                    </span>
+            </a>
         </div>
     </aside>
 
-    <div id="sidebar-overlay"
-         class="fixed inset-0 z-30 hidden bg-slate-950/60 md:hidden"
-         onclick="toggleSidebar()">
-    </div>
+    <div
+        id="sidebar-overlay"
+        class="fixed inset-0 z-30 hidden bg-slate-950/60 md:hidden"
+        onclick="toggleSidebar()"
+    ></div>
 
     <div class="flex min-w-0 flex-1 flex-col">
         <header class="gv-panel-header sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6">
             <div class="flex items-center gap-3">
-                <button type="button"
-                        class="rounded-lg border border-slate-200 p-2 text-slate-600 md:hidden"
-                        onclick="toggleSidebar()"
-                        aria-label="Abrir menu">
-                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M4 6h16M4 12h16M4 18h16"/>
+                <button
+                    type="button"
+                    class="rounded-lg border border-slate-200 p-2 text-slate-600 md:hidden"
+                    onclick="toggleSidebar()"
+                    aria-label="Abrir menú"
+                >
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16"
+                        />
                     </svg>
                 </button>
 
@@ -126,8 +149,10 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
 
-                    <button type="submit"
-                            class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    <button
+                        type="submit"
+                        class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                    >
                         Salir
                     </button>
                 </form>
@@ -150,6 +175,7 @@
         overlay.classList.toggle('hidden');
     }
 </script>
+
 @stack('scripts')
 </body>
 </html>
