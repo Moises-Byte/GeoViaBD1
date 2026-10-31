@@ -1,4 +1,37 @@
 /* Paleta del panel: petróleo, blanco, menta y cian. */
+.gv-statistic-metric { position: relative; padding-left: 78px !important; min-height: 156px; }
+.gv-statistic-icon { position: absolute; top: 22px; left: 18px; display: grid; place-items: center; width: 46px; height: 50px; border-radius: 11px; background: #def7ee; color: #087e63; }
+.gv-statistic-icon svg { width: 26px; height: 26px; }
+.gv-statistic-metric:nth-child(3) .gv-statistic-icon { background: #e1f6fc; color: #09a4cb; }
+.gv-statistic-metric h2 { color: #3e5c72; font-size: 12px; }
+.gv-statistic-metric .gv-stat-number { font-size: 28px; }
+.gv-statistic-metric > p:last-child { margin-top: 8px; font-size: 11px; }
+.gv-statistics-panels > .gv-card > .gv-card-header { border-bottom: 0; padding-left: 36px; position: relative; }
+.gv-statistics-panels > .gv-card > .gv-card-header::before { content: ''; position: absolute; top: 22px; left: 20px; width: 4px; height: 25px; border-radius: 4px; background: #13b7d5; }
+.gv-statistics .gv-state-row { grid-template-columns: 108px minmax(0, 1fr) 34px; gap: 12px; }
+.gv-statistics .gv-state-row > button { grid-column: 2; grid-row: 1; }
+.gv-statistics .gv-state-row > span:last-child { grid-column: 3; grid-row: 1; font-size: 0; }
+.gv-statistics .gv-state-row > span:first-child { font-size: 12px; }
+.gv-statistics .gv-state-row > span:last-child::after { content: attr(data-cantidad); font-size: 13px; }
+.gv-statistics .gv-state-row > button > span:first-child { height: 15px; background: #e8f0f5; border-radius: 8px; }
+.gv-statistics [data-estado="VALIDADO"] button > span:first-child > span { background: #4cc8e8; }
+.gv-statistics [data-estado="FINALIZADO"] button > span:first-child > span { background: #16a781; }
+.gv-statistics [data-estado="PENDIENTE"] button > span:first-child > span { background: #efbb55; }
+.gv-statistics [data-estado="RECHAZADO"] button > span:first-child > span { background: #eb8494; }
+.gv-statistics .gv-state-panel { overflow: visible; }
+.gv-statistics-roads th:last-child { text-align: right; }
+.gv-road-count { display: flex; align-items: center; justify-content: flex-end; gap: 14px; }
+.gv-road-count strong { min-width: 20px; text-align: right; font-size: 13px; }
+.gv-road-track { width: 120px; height: 11px; border-radius: 8px; background: #e9f1f5; overflow: hidden; }
+.gv-road-track > span { display: block; height: 100%; background: #80d4e9; border-radius: inherit; }
+@media (min-width: 1280px) and (max-width: 1450px) {
+    .gv-statistic-metric { padding: 18px !important; padding-top: 76px !important; }
+    .gv-statistic-icon { top: 16px; }
+}
+@media (max-width: 480px) {
+    .gv-statistics .gv-state-row { grid-template-columns: 85px minmax(0, 1fr) 24px; gap: 8px; }
+    .gv-road-track { width: 60px; }
+}
 .gv-orders-filters { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 20px; }
 .gv-orders-filters .gv-crew-search-field { flex: 2 1 260px; }
 .gv-orders-filters select { flex: 1 1 155px; min-width: 0; padding-top: 12px; padding-bottom: 12px; max-width: 100%; }
