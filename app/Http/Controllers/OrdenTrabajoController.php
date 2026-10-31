@@ -19,12 +19,40 @@ class OrdenTrabajoController extends Controller
     {
         $this->verificarAcceso($request);
 
+        $filtros = $request->validate([
+            'cuadrilla' => ['nullable', 'integer', 'min:1'],
+            'estado' => ['nullable', Rule::in(['PENDIENTE', 'EN PROCESO', 'FINALIZADA'])],
+            'buscar' => ['nullable', 'string', 'max:150'],
+        ]);
+        $buscar = trim($filtros['buscar'] ?? '');
+        $estadoSeleccionado = $filtros['estado'] ?? '';
+        $cuadrillas = Cuadrilla::orderBy('nombre')->get(['id_cuadrilla', 'nombre']);
+        $cuadrillaSeleccionada = isset($filtros['cuadrilla'])
+            ? Cuadrilla::findOrFail($filtros['cuadrilla'])
+            : null;
+
         $ordenes = OrdenTrabajo::with(['reporte.via', 'cuadrilla', 'supervisor'])
+            ->when($cuadrillaSeleccionada, fn ($consulta) => $consulta->where('cuadrilla_id_cuadrilla', $cuadrillaSeleccionada->id_cuadrilla))
+            ->when($estadoSeleccionado !== '', fn ($consulta) => $consulta->where('estado', $estadoSeleccionado))
+            ->when($buscar !== '', function ($consulta) use ($buscar) {
+                $patron = '%'.mb_strtoupper($buscar).'%';
+                $consulta->where(function ($grupo) use ($patron, $buscar) {
+                    $grupo->whereHas('reporte', function ($reporte) use ($patron) {
+                        $reporte->whereRaw('UPPER(descripcion) LIKE ?', [$patron])
+                            ->orWhereHas('via', fn ($via) => $via->whereRaw('UPPER(nombre_via) LIKE ?', [$patron]));
+                    });
+                    $numero = ltrim($buscar, '#');
+                    if (ctype_digit($numero) && strlen($numero) <= 10) {
+                        $grupo->orWhere('id_orden', (int) $numero);
+                    }
+                });
+            })
             ->orderByDesc('fecha_asignacion')
             ->orderByDesc('id_orden')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('ordenes.index', compact('ordenes'));
+        return view('ordenes.index', compact('ordenes', 'cuadrillaSeleccionada', 'cuadrillas', 'buscar', 'estadoSeleccionado'));
     }
 
     public function create(Request $request): View
