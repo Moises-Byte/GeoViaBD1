@@ -10,6 +10,18 @@
 
 @section('slot')
     <div class="space-y-6">
+        @if ($cuadrillaSeleccionada)
+            <div class="gv-card gv-card-body flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 class="gv-title">Trabajos de {{ $cuadrillaSeleccionada->nombre }}</h2>
+                    <p class="gv-muted-xs mt-1">Órdenes asignadas a esta cuadrilla, en todos los estados.</p>
+                </div>
+                <div class="flex flex-wrap gap-4 text-sm font-semibold text-emerald-700">
+                    <a href="{{ route('cuadrillas.index') }}" class="underline">Volver a cuadrillas</a>
+                    <a href="{{ route('ordenes.index') }}" class="underline">Ver todas las órdenes</a>
+                </div>
+            </div>
+        @endif
         @if (session('success'))
             <div role="status" class="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
                 {{ session('success') }}
@@ -66,7 +78,7 @@
                         @empty
                             <tr>
                                 <td colspan="10" class="px-5 py-8 text-center text-slate-500">
-                                    Todavía no hay órdenes de trabajo. Pulsa “Nueva orden” para crear la primera.
+                                    {{ $cuadrillaSeleccionada ? 'Esta cuadrilla todavía no tiene órdenes de trabajo asignadas.' : 'Todavía no hay órdenes de trabajo. Pulsa “Nueva orden” para crear la primera.' }}
                                 </td>
                             </tr>
                         @endforelse

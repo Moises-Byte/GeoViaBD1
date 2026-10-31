@@ -19,12 +19,19 @@ class OrdenTrabajoController extends Controller
     {
         $this->verificarAcceso($request);
 
+        $filtros = $request->validate(['cuadrilla' => ['nullable', 'integer', 'min:1']]);
+        $cuadrillaSeleccionada = isset($filtros['cuadrilla'])
+            ? Cuadrilla::findOrFail($filtros['cuadrilla'])
+            : null;
+
         $ordenes = OrdenTrabajo::with(['reporte.via', 'cuadrilla', 'supervisor'])
+            ->when($cuadrillaSeleccionada, fn ($consulta) => $consulta->where('cuadrilla_id_cuadrilla', $cuadrillaSeleccionada->id_cuadrilla))
             ->orderByDesc('fecha_asignacion')
             ->orderByDesc('id_orden')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('ordenes.index', compact('ordenes'));
+        return view('ordenes.index', compact('ordenes', 'cuadrillaSeleccionada'));
     }
 
     public function create(Request $request): View
