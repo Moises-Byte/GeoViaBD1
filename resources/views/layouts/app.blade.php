@@ -11,6 +11,7 @@
         ['route' => 'inspecciones.index', 'label' => 'Inspecciones', 'icon' => 'inspection', 'roles' => ['AUTORIDAD', 'INSPECTOR', 'SUPERVISOR']],
         ['route' => 'ordenes.index', 'label' => 'Órdenes', 'icon' => 'orders', 'roles' => ['AUTORIDAD', 'SUPERVISOR']],
         ['route' => 'cuadrillas.index', 'label' => 'Cuadrillas', 'icon' => 'crews', 'roles' => ['AUTORIDAD', 'INSPECTOR', 'SUPERVISOR']],
+        ['route' => 'tipos-dano.index', 'label' => 'Tipos de daño', 'icon' => 'reports', 'roles' => ['AUTORIDAD', 'INSPECTOR', 'SUPERVISOR']],
     ];
 @endphp
 

@@ -12,6 +12,7 @@ use App\Http\Controllers\CuadrillaController;
 use App\Http\Controllers\InspeccionController;
 use App\Http\Controllers\ViaController;
 use App\Http\Controllers\MapaPublicoController;
+use App\Http\Controllers\TipoDanoController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
@@ -23,7 +24,7 @@ Route::get('/mapa', [MapaPublicoController::class, 'index'])
 
 Route::get('/api/mapa/reportes', [MapaPublicoController::class, 'reportes'])
     ->name('mapa.reportes');
-    
+
 Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -61,6 +62,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/prioridades/recalcular', [PrioridadController::class, 'recalcular'])
         ->name('prioridades.recalcular');
+
+    Route::resource('tipos-dano', TipoDanoController::class)
+        ->parameters(['tipos-dano' => 'tipo'])
+        ->only(['index', 'create', 'store', 'edit', 'update']);
 });
 
 Route::middleware('auth')->group(function () {
