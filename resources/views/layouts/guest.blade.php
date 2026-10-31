@@ -13,7 +13,7 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-        @if (request()->routeIs('login'))
+        @if (request()->routeIs('login', 'register', 'password.request', 'password.reset'))
             <style>
                 .gv-login-map {
                     min-height: 100vh;
@@ -54,7 +54,7 @@
         @endif
     </head>
     <body class="font-sans text-gray-900 antialiased">
-        @if (request()->routeIs('login'))
+    @if (request()->routeIs('login', 'register', 'password.request', 'password.reset'))
             <main class="gv-login-map">
                 <div class="gv-login-card">
                     <a href="/" class="gv-login-brand" aria-label="GeoVía, inicio">

@@ -52,6 +52,13 @@
         <button type="submit" class="gv-auth-submit">
             Iniciar sesión
         </button>
+        @if (Route::has('password.request'))
+            <div class="text-center">
+                <a href="{{ route('password.request') }}" class="gv-auth-link">
+                    ¿Olvidaste tu contraseña?
+                </a>
+            </div>
+        @endif
     </form>
 
     <p class="gv-auth-footer">
