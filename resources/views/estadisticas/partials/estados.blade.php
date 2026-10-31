@@ -16,7 +16,7 @@
     ];
     $maximoReportes = max(1, (int) $porEstado->max());
 @endphp
-            <div class="gv-card">
+            <div class="gv-card gv-state-panel">
                 <div class="gv-card-header">
                     <h2 class="gv-title">Reportes por estado</h2>
                     <p class="gv-muted mt-1">{{ $totalReportes }} {{ $totalReportes === 1 ? 'reporte en total' : 'reportes en total' }}.</p>
@@ -29,7 +29,7 @@
                             $porcentajeTexto = rtrim(rtrim(number_format($porcentaje, 1, '.', ''), '0'), '.');
                             $tooltipId = 'porcentaje-estado-'.$loop->index;
                         @endphp
-                        <div class="grid grid-cols-2 items-center gap-x-4 gap-y-2 sm:grid-cols-[9rem_minmax(0,1fr)_7rem]">
+                        <div data-estado="{{ $estado }}" class="gv-state-row grid grid-cols-2 items-center gap-x-4 gap-y-2 sm:grid-cols-[9rem_minmax(0,1fr)_7rem]">
                             <span class="text-sm font-medium text-slate-700 sm:text-base">{{ $nombresEstado[$estado] }}</span>
                             <button type="button" aria-label="{{ $nombresEstado[$estado] }}: {{ $cantidad }} {{ $cantidad === 1 ? 'reporte' : 'reportes' }}"
                                     aria-describedby="{{ $tooltipId }}"
@@ -42,7 +42,7 @@
                                     {{ $porcentajeTexto }}% del total
                                 </span>
                             </button>
-                            <span class="col-start-2 row-start-1 text-right text-sm font-bold text-slate-900 sm:col-start-3 sm:row-start-auto sm:text-base">
+                            <span data-cantidad="{{ $cantidad }}" class="col-start-2 row-start-1 text-right text-sm font-bold text-slate-900 sm:col-start-3 sm:row-start-auto sm:text-base">
                                 {{ $cantidad }} {{ $cantidad === 1 ? 'reporte' : 'reportes' }}
                             </span>
                         </div>

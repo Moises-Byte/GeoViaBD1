@@ -19,6 +19,25 @@ class OrdenTrabajoController extends Controller
     {
         $this->verificarAcceso($request);
 
+        $filtros = $request->validate([
+            'cuadrilla' => ['nullable', 'integer', 'min:1'],
+            'estado' => [
+                'nullable',
+                Rule::in(['PENDIENTE', 'EN PROCESO', 'FINALIZADA']),
+            ],
+            'buscar' => ['nullable', 'string', 'max:150'],
+        ]);
+
+        $buscar = trim($filtros['buscar'] ?? '');
+        $estadoSeleccionado = $filtros['estado'] ?? '';
+
+        $cuadrillas = Cuadrilla::orderBy('nombre')
+            ->get(['id_cuadrilla', 'nombre']);
+
+        $cuadrillaSeleccionada = isset($filtros['cuadrilla'])
+            ? Cuadrilla::findOrFail($filtros['cuadrilla'])
+            : null;
+
         $ordenes = OrdenTrabajo::with([
             'reporte.via',
             'cuadrilla',
@@ -33,11 +52,55 @@ class OrdenTrabajoController extends Controller
                     );
                 }
             )
+            ->when(
+                $cuadrillaSeleccionada,
+                fn ($consulta) => $consulta->where(
+                    'cuadrilla_id_cuadrilla',
+                    $cuadrillaSeleccionada->id_cuadrilla
+                )
+            )
+            ->when(
+                $estadoSeleccionado !== '',
+                fn ($consulta) => $consulta->where(
+                    'estado',
+                    $estadoSeleccionado
+                )
+            )
+            ->when($buscar !== '', function ($consulta) use ($buscar) {
+                $patron = '%'.mb_strtoupper($buscar).'%';
+
+                $consulta->where(function ($grupo) use ($patron, $buscar) {
+                    $grupo->whereHas('reporte', function ($reporte) use ($patron) {
+                        $reporte
+                            ->whereRaw('UPPER(descripcion) LIKE ?', [$patron])
+                            ->orWhereHas(
+                                'via',
+                                fn ($via) => $via->whereRaw(
+                                    'UPPER(nombre_via) LIKE ?',
+                                    [$patron]
+                                )
+                            );
+                    });
+
+                    $numero = ltrim($buscar, '#');
+
+                    if (ctype_digit($numero) && strlen($numero) <= 10) {
+                        $grupo->orWhere('id_orden', (int) $numero);
+                    }
+                });
+            })
             ->orderByDesc('fecha_asignacion')
             ->orderByDesc('id_orden')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('ordenes.index', compact('ordenes'));
+        return view('ordenes.index', compact(
+            'ordenes',
+            'cuadrillaSeleccionada',
+            'cuadrillas',
+            'buscar',
+            'estadoSeleccionado'
+        ));
     }
 
     public function create(Request $request): View
@@ -53,9 +116,16 @@ class OrdenTrabajoController extends Controller
             ->get();
 
         $cuadrillas = Cuadrilla::orderBy('nombre')->get();
-        $supervisores = User::where('rol', 'SUPERVISOR')->orderBy('nombre')->get();
 
-        return view('ordenes.create', compact('reportes', 'cuadrillas', 'supervisores'));
+        $supervisores = User::where('rol', 'SUPERVISOR')
+            ->orderBy('nombre')
+            ->get();
+
+        return view('ordenes.create', compact(
+            'reportes',
+            'cuadrillas',
+            'supervisores'
+        ));
     }
 
     public function store(Request $request): RedirectResponse
@@ -63,14 +133,27 @@ class OrdenTrabajoController extends Controller
         $this->verificarCreacion($request);
 
         $datos = $request->validate([
-            'reporte_id_reporte' => ['required', 'integer', Rule::exists('reporte', 'id_reporte')],
-            'cuadrilla_id_cuadrilla' => ['required', 'integer', Rule::exists('cuadrilla', 'id_cuadrilla')],
+            'reporte_id_reporte' => [
+                'required',
+                'integer',
+                Rule::exists('reporte', 'id_reporte'),
+            ],
+            'cuadrilla_id_cuadrilla' => [
+                'required',
+                'integer',
+                Rule::exists('cuadrilla', 'id_cuadrilla'),
+            ],
             'usuario_id_usuario' => [
                 'required',
                 'integer',
-                Rule::exists('usuario', 'id_usuario')->where('rol', 'SUPERVISOR'),
+                Rule::exists('usuario', 'id_usuario')
+                    ->where('rol', 'SUPERVISOR'),
             ],
-            'fecha_asignacion' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'fecha_asignacion' => [
+                'required',
+                'date_format:Y-m-d',
+                'before_or_equal:today',
+            ],
             'observaciones' => ['nullable', 'string', 'max:500'],
         ], [
             'reporte_id_reporte.required' => 'Selecciona un reporte.',
@@ -86,7 +169,7 @@ class OrdenTrabajoController extends Controller
         ]);
 
         $orden = DB::transaction(function () use ($datos) {
-            // Bloquear el reporte evita que dos solicitudes creen órdenes duplicadas.
+            // Evita crear dos órdenes simultáneas para el mismo reporte.
             $reporte = Reporte::whereKey($datos['reporte_id_reporte'])
                 ->lockForUpdate()
                 ->get()
@@ -121,26 +204,21 @@ class OrdenTrabajoController extends Controller
         );
     }
 
-    private function verificarAcceso(Request $request): void
-    {
-        abort_unless(
-            in_array($request->user()?->rol, ['AUTORIDAD', 'SUPERVISOR'], true),
-            403,
-            'No tienes permiso para gestionar órdenes de trabajo.'
-        );
-    }
-
     public function edit(Request $request, OrdenTrabajo $orden): View
     {
         $this->verificarResponsable($request, $orden);
+
         $orden->load(['reporte.via', 'cuadrilla', 'supervisor']);
 
         return view('ordenes.edit', compact('orden'));
     }
 
-    public function update(Request $request, OrdenTrabajo $orden): RedirectResponse
-    {
+    public function update(
+        Request $request,
+        OrdenTrabajo $orden
+    ): RedirectResponse {
         $this->verificarResponsable($request, $orden);
+
         $datos = $request->validate([
             'avance' => ['required', 'integer', 'between:0,99'],
             'observaciones' => ['nullable', 'string', 'max:500'],
@@ -153,6 +231,7 @@ class OrdenTrabajoController extends Controller
 
         DB::transaction(function () use ($request, $orden, $datos) {
             [$actual, $reporte] = $this->bloquearOrden($request, $orden);
+
             if ((int) $datos['avance'] < $actual->avance) {
                 throw ValidationException::withMessages([
                     'avance' => 'El avance no puede ser menor que el ya registrado.',
@@ -160,7 +239,9 @@ class OrdenTrabajoController extends Controller
             }
 
             $actual->avance = (int) $datos['avance'];
-            $actual->estado = $actual->avance > 0 ? 'EN PROCESO' : 'PENDIENTE';
+            $actual->estado = $actual->avance > 0
+                ? 'EN PROCESO'
+                : 'PENDIENTE';
             $actual->observaciones = $datos['observaciones'] ?? null;
             $actual->save();
 
@@ -170,14 +251,23 @@ class OrdenTrabajoController extends Controller
             }
         });
 
-        return redirect()->route('ordenes.edit', $orden)->with('success', 'Avance guardado correctamente.');
+        return redirect()
+            ->route('ordenes.edit', $orden)
+            ->with('success', 'Avance guardado correctamente.');
     }
 
-    public function finalizar(Request $request, OrdenTrabajo $orden): RedirectResponse
-    {
+    public function finalizar(
+        Request $request,
+        OrdenTrabajo $orden
+    ): RedirectResponse {
         $this->verificarResponsable($request, $orden);
+
         $datos = $request->validate([
-            'fecha_finalizacion' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'fecha_finalizacion' => [
+                'required',
+                'date_format:Y-m-d',
+                'before_or_equal:today',
+            ],
             'observaciones_finales' => ['nullable', 'string', 'max:500'],
         ], [
             'fecha_finalizacion.required' => 'Indica la fecha de finalización.',
@@ -188,7 +278,11 @@ class OrdenTrabajoController extends Controller
 
         DB::transaction(function () use ($request, $orden, $datos) {
             [$actual, $reporte] = $this->bloquearOrden($request, $orden);
-            if ($datos['fecha_finalizacion'] < $actual->fecha_asignacion->format('Y-m-d')) {
+
+            if (
+                $datos['fecha_finalizacion']
+                < $actual->fecha_asignacion->format('Y-m-d')
+            ) {
                 throw ValidationException::withMessages([
                     'fecha_finalizacion' => 'La finalización no puede ser anterior a la asignación.',
                 ]);
@@ -205,7 +299,30 @@ class OrdenTrabajoController extends Controller
         });
 
         return redirect()->route('ordenes.index')->with(
-            'success', "Orden #{$orden->id_orden} finalizada correctamente. El reporte relacionado también quedó finalizado."
+            'success',
+            "Orden #{$orden->id_orden} finalizada correctamente. El reporte relacionado también quedó finalizado."
+        );
+    }
+
+    private function verificarAcceso(Request $request): void
+    {
+        abort_unless(
+            in_array(
+                $request->user()?->rol,
+                ['AUTORIDAD', 'SUPERVISOR'],
+                true
+            ),
+            403,
+            'No tienes permiso para gestionar órdenes de trabajo.'
+        );
+    }
+
+    private function verificarCreacion(Request $request): void
+    {
+        abort_unless(
+            $request->user()?->rol === 'AUTORIDAD',
+            403,
+            'Solo la autoridad municipal puede crear y asignar órdenes.'
         );
     }
 
@@ -230,31 +347,38 @@ class OrdenTrabajoController extends Controller
         );
     }
 
-    private function bloquearOrden(Request $request, OrdenTrabajo $orden): array
-    {
-        $actual = OrdenTrabajo::whereKey($orden->id_orden)->lockForUpdate()->get()->firstOrFail();
+    private function bloquearOrden(
+        Request $request,
+        OrdenTrabajo $orden
+    ): array {
+        $actual = OrdenTrabajo::whereKey($orden->id_orden)
+            ->lockForUpdate()
+            ->get()
+            ->firstOrFail();
+
         $this->verificarResponsable($request, $actual);
+
         if ($actual->estado === 'FINALIZADA') {
             throw ValidationException::withMessages([
                 'orden' => 'Esta orden ya está finalizada y no puede modificarse.',
             ]);
         }
 
-        $reporte = Reporte::whereKey($actual->reporte_id_reporte)->lockForUpdate()->get()->firstOrFail();
-        if (! in_array($reporte->estado, ['VALIDADO', 'EN REPARACION'], true)) {
+        $reporte = Reporte::whereKey($actual->reporte_id_reporte)
+            ->lockForUpdate()
+            ->get()
+            ->firstOrFail();
+
+        if (! in_array(
+            $reporte->estado,
+            ['VALIDADO', 'EN REPARACION'],
+            true
+        )) {
             throw ValidationException::withMessages([
                 'orden' => 'El estado del reporte no permite actualizar esta orden.',
             ]);
         }
 
         return [$actual, $reporte];
-    }
-    private function verificarCreacion(Request $request): void
-    {
-        abort_unless(
-            $request->user()?->rol === 'AUTORIDAD',
-            403,
-            'Solo la autoridad municipal puede crear y asignar órdenes.'
-        );
     }
 }
