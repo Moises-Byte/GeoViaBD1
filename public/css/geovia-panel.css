@@ -1,4 +1,40 @@
 /* Paleta del panel: petróleo, blanco, menta y cian. */
+.gv-priority-explanation { border: 1px solid #b5e1ed; border-radius: 12px; padding: 20px; background: #e0f3fb; }
+.gv-priority-explanation h2 { color: #102e48; font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.gv-priority-factors { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.gv-priority-factors > div + div { padding-left: 22px; border-left: 1px solid #bcdde7; }
+.gv-priority-factors h3 { color: #143a4b; font-size: 13px; font-weight: 700; margin-bottom: 5px; }
+.gv-priority-factors p { color: #48677e; font-size: 12px; line-height: 1.6; }
+.gv-priority-formula { margin-top: 16px; padding-top: 12px; border-top: 1px solid #bcdde7; color: #3b5b72; font-size: 12px; }
+.gv-priority-search { display: flex; align-items: center; gap: 12px; }
+.gv-priority-search > button { padding: 13px 25px; background: #104452 !important; }
+.gv-priority-card { border-left: 4px solid #15bfde !important; }
+.gv-priority-table { table-layout: fixed; }
+.gv-priority-table thead { background: #0d3c48; color: #fff; text-transform: uppercase; font-size: 11px; letter-spacing: .4px; }
+.gv-priority-table th, .gv-priority-table td { text-align: left; padding: 20px; overflow-wrap: anywhere; }
+.gv-priority-table th:first-child { width: 10%; }
+.gv-priority-table th:nth-child(2) { width: 36%; }
+.gv-priority-table th:nth-child(3) { width: 20%; }
+.gv-priority-table th:nth-child(4) { width: 34%; }
+.gv-priority-table tbody tr { border-bottom: 1px solid #e0eaf0; }
+.gv-priority-table tbody tr:first-child:not(:only-child) { background: #effbf7; }
+.gv-priority-table td { font-size: 13px; }
+.gv-priority-rank { font-size: 24px; font-weight: 700; color: #102e48; font-variant-numeric: tabular-nums; }
+.gv-priority-rank::after { content: ''; display: block; margin-top: 8px; height: 2px; width: 24px; background: #17c6cc; }
+.gv-priority-score { display: flex; align-items: baseline; gap: 6px; }
+.gv-priority-score strong { font-size: 24px; color: #102e48; }
+.gv-priority-score > span { color: #526e83; }
+.gv-priority-track { height: 8px; border-radius: 8px; background: #e0eaf0; overflow: hidden; margin-top: 7px; }
+.gv-priority-track > span { display: block; height: 100%; background: #16b38c; border-radius: inherit; }
+.gv-priority-note { padding: 12px 20px; color: #527088; font-size: 11px; background: #f7fbfd; }
+.gv-priority-empty { text-align: center !important; color: #5b7489; }
+@media (max-width: 900px) { .gv-priority-table { min-width: 720px; } }
+@media (max-width: 600px) {
+    .gv-priority-factors { grid-template-columns: 1fr; gap: 12px; }
+    .gv-priority-factors > div + div { padding: 12px 0 0; border-left: 0; border-top: 1px solid #bcdde7; }
+    .gv-priority-search { flex-wrap: wrap; }
+    .gv-priority-search .gv-crew-search-field { flex-basis: 100%; }
+}
 .gv-statistic-metric { position: relative; padding-left: 78px !important; min-height: 156px; }
 .gv-statistic-icon { position: absolute; top: 22px; left: 18px; display: grid; place-items: center; width: 46px; height: 50px; border-radius: 11px; background: #def7ee; color: #087e63; }
 .gv-statistic-icon svg { width: 26px; height: 26px; }

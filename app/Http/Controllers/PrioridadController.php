@@ -14,15 +14,32 @@ class PrioridadController extends Controller
     {
         $this->verificarAcceso($request);
 
+        $datos = $request->validate(['buscar' => ['nullable', 'string', 'max:150']]);
+        $buscar = trim($datos['buscar'] ?? '');
         $reportes = Reporte::with(['via', 'tipoDano'])
             ->where('estado', 'VALIDADO')
+            ->when($buscar !== '', function ($consulta) use ($buscar) {
+                $patron = '%'.mb_strtoupper($buscar).'%';
+                $consulta->where(fn ($grupo) => $grupo
+                    ->whereRaw('UPPER(descripcion) LIKE ?', [$patron])
+                    ->orWhereHas('via', fn ($via) => $via->whereRaw('UPPER(nombre_via) LIKE ?', [$patron])));
+            })
             ->orderByDesc('prioridad')
             ->orderBy('fecha_reporte')
             ->orderBy('id_reporte')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
+
+        // Se usa el mismo criterio que el cálculo: reportes de la vía no rechazados.
+        $cantidadesPorVia = Reporte::where('estado', '<>', 'RECHAZADO')
+            ->whereIn('via_id_via', $reportes->pluck('via_id_via'))
+            ->select('via_id_via')->selectRaw('COUNT(*) AS cantidad')
+            ->groupBy('via_id_via')->pluck('cantidad', 'via_id_via');
 
         return view('prioridades.index', [
             'reportes' => $reportes,
+            'buscar' => $buscar,
+            'cantidadesPorVia' => $cantidadesPorVia,
         ]);
     }
 
